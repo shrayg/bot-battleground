@@ -51,11 +51,26 @@ export default function DebateTerminal() {
   };
 
   const getAIResponse = async (prompt: string, sessionId: string | null, isNewSession = false) => {
-    // For demo purposes, we'll use mock responses
-    // In production, this would call your actual API endpoints
     try {
-      const { mockApi } = await import('@/lib/mockApi');
-      return await mockApi.simulateApiCall(prompt, sessionId, isNewSession);
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt,
+          sessionId,
+          isNewSession,
+          conversationHistory: dialogue.map(msg => `${msg.speaker}: ${msg.content}`)
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
     } catch (error) {
       console.error('API Error:', error);
       throw error;
